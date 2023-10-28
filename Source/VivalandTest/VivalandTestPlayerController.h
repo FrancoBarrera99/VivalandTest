@@ -10,6 +10,7 @@
 
 /** Forward declaration to improve compiling times */
 class UNiagaraSystem;
+enum class EPlayerTeam : uint8;
 
 UCLASS()
 class AVivalandTestPlayerController : public APlayerController
@@ -42,6 +43,11 @@ public:
 	/** Shoot Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ShootAction;
+
+	EPlayerTeam GetPlayerTeam();
+
+	UFUNCTION(BlueprintCallable)
+	void IncreasePlayerScore(int32 Value);
 
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */

@@ -4,8 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
-#include "VivalandTestCharacter.h"
 #include "VivalandTestGameMode.generated.h"
+
+enum class EPlayerTeam : uint8;
 
 UCLASS(minimalapi)
 class AVivalandTestGameMode : public AGameMode
@@ -14,11 +15,11 @@ class AVivalandTestGameMode : public AGameMode
 
 public:
 	AVivalandTestGameMode();
-	void IncreaseTeamScore(TEnumAsByte<EPlayerTeam> Team, int32 Score);
+	void IncreaseTeamScore(EPlayerTeam Team, int32 Score);
 
 protected:
 
-	TMap<TEnumAsByte<EPlayerTeam>, int32> TeamScores;
+	TMap<EPlayerTeam, int32> TeamScores;
 };
 
 

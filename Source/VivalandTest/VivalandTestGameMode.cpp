@@ -2,6 +2,7 @@
 
 #include "VivalandTestGameMode.h"
 #include "VivalandTestPlayerController.h"
+#include "VivalandTestPlayerState.h"
 #include "UObject/ConstructorHelpers.h"
 
 AVivalandTestGameMode::AVivalandTestGameMode()
@@ -27,7 +28,7 @@ AVivalandTestGameMode::AVivalandTestGameMode()
 	TeamScores.Emplace(EPlayerTeam::Blue, 0);
 }
 
-void AVivalandTestGameMode::IncreaseTeamScore(TEnumAsByte<EPlayerTeam> Team, int32 Score)
+void AVivalandTestGameMode::IncreaseTeamScore(EPlayerTeam Team, int32 Score)
 {
 	if (TeamScores.Contains(Team))
 	{

@@ -7,6 +7,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "VivalandTestCharacter.h"
 #include "VivalandTestProjectile.h"
+#include "VivalandTestPlayerState.h"
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -34,6 +35,25 @@ void AVivalandTestPlayerController::BeginPlay()
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
+	}
+}
+
+EPlayerTeam AVivalandTestPlayerController::GetPlayerTeam()
+{
+	AVivalandTestPlayerState* PS = Cast<AVivalandTestPlayerState>(PlayerState);
+	if (PS != nullptr)
+	{
+		return PS->GetPlayerTeam();
+	}
+	return EPlayerTeam::None;
+}
+
+void AVivalandTestPlayerController::IncreasePlayerScore(int32 Value)
+{
+	AVivalandTestPlayerState* PS = Cast<AVivalandTestPlayerState>(PlayerState);
+	if (PS != nullptr)
+	{
+		PS->IncreasePlayerScore(Value);
 	}
 }
 

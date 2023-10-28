@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "VivalandTestCharacter.h"
+#include "VivalandTestPlayerController.h"
 #include "VivalandTestGameMode.h"
 
 // Sets default values
@@ -64,9 +65,15 @@ void AVivalandTestProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 
 	if (HasAuthority() && Character != nullptr && LocalOwner != nullptr)
 	{
-		if (Character->GetPlayerTeam() == LocalOwner->GetPlayerTeam())
+		AVivalandTestPlayerController* CharacterPC = Cast<AVivalandTestPlayerController>(Character->GetController());
+		AVivalandTestPlayerController* LocalOwnerPC = Cast<AVivalandTestPlayerController>(LocalOwner->GetController());
+
+		if (CharacterPC != nullptr && LocalOwnerPC != nullptr)
 		{
-			Server_NotifyPlayerHit(Character);
+			if (CharacterPC->GetPlayerTeam() == LocalOwnerPC->GetPlayerTeam())
+			{
+				Server_NotifyPlayerHit(Character);
+			}
 		}
 	}
 	Destroy();
@@ -75,10 +82,13 @@ void AVivalandTestProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 void AVivalandTestProjectile::Server_NotifyPlayerHit_Implementation(AVivalandTestCharacter* Player)
 {
 	AVivalandTestGameMode* GameMode = Cast<AVivalandTestGameMode>(GetWorld()->GetAuthGameMode());
-	if (GameMode != nullptr)
+	AVivalandTestPlayerController* PlayerPC = Cast<AVivalandTestPlayerController>(Player->GetController());
+	if (GameMode != nullptr && PlayerPC != nullptr)
 	{
+		EPlayerTeam PlayerTeam = PlayerPC->GetPlayerTeam();
 		int32 ScoreToIncrease = 1;
-		GameMode->IncreaseTeamScore(Player->GetPlayerTeam(), ScoreToIncrease);
+		GameMode->IncreaseTeamScore(PlayerTeam, ScoreToIncrease);
+		PlayerPC->IncreasePlayerScore(ScoreToIncrease);
 	}
 
 	if (GEngine)
