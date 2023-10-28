@@ -62,8 +62,14 @@ protected:
 	/** Input handlers for Shoot action. */
 	void OnShootStarted();
 
+	UFUNCTION(Server, Reliable)
+	void Server_SpawnProjectile(FVector SpawnPosition, FRotator SpawnRotation);
+	void Server_SpawnProjectile_Implementation(FVector SpawnPosition, FRotator SpawnRotation);
+
 private:
 	FVector CachedDestination;
+
+	UClass* ProjectileClass;
 
 	bool bIsTouch; // Is it a touch device
 	float FollowTime; // For how long it has been pressed

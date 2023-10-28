@@ -6,6 +6,7 @@
 #include "NiagaraSystem.h"
 #include "NiagaraFunctionLibrary.h"
 #include "VivalandTestCharacter.h"
+#include "VivalandTestProjectile.h"
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -16,6 +17,12 @@ AVivalandTestPlayerController::AVivalandTestPlayerController()
 	DefaultMouseCursor = EMouseCursor::Default;
 	CachedDestination = FVector::ZeroVector;
 	FollowTime = 0.f;
+
+	static ConstructorHelpers::FClassFinder<AActor> ProjectileBPClass(TEXT("/Game/TopDown/Blueprints/BP_VivalandTestProjectile"));
+	if (ProjectileBPClass.Class != nullptr)
+	{
+		ProjectileClass = ProjectileBPClass.Class;
+	}
 }
 
 void AVivalandTestPlayerController::BeginPlay()
@@ -121,6 +128,20 @@ void AVivalandTestPlayerController::OnTouchReleased()
 
 void AVivalandTestPlayerController::OnShootStarted()
 {
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Shoot"));
+	FVector SpawnPosition = GetPawn()->GetActorLocation();
+	FRotator SpawnRotation = GetPawn()->GetActorRotation();
+
+	Server_SpawnProjectile(SpawnPosition, SpawnRotation);
+}
+
+void AVivalandTestPlayerController::Server_SpawnProjectile_Implementation(FVector SpawnPosition, FRotator SpawnRotation)
+{
+	if (ProjectileClass != nullptr)
+	{
+		FTransform SpawnTransform(SpawnRotation, SpawnPosition, FVector::OneVector);
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.Owner = GetPawn();
+		AActor* SpawnedProjectile = GetWorld()->SpawnActor(ProjectileClass, &SpawnTransform, SpawnParameters);
+		GetPawn()->MoveIgnoreActorAdd(SpawnedProjectile);
+	}
 }

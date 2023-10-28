@@ -9,6 +9,7 @@
 class UProjectileMovementComponent;
 class USphereComponent;
 class UStaticMeshComponent;
+class AVivalandTestCharacter;
 
 UCLASS()
 class VIVALANDTEST_API AVivalandTestProjectile : public AActor
@@ -22,6 +23,11 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
+
+	UFUNCTION(Server, Reliable)
+	void Server_NotifyPlayerHit(AVivalandTestCharacter* Player);
+	void Server_NotifyPlayerHit_Implementation(AVivalandTestCharacter* Player);
 
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
 	USphereComponent* CollisionComponent;
@@ -31,9 +37,4 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, Category = Projectile)
 	UStaticMeshComponent* StaticMeshComponent;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 };

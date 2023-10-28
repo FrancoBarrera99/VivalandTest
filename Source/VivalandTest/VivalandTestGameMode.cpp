@@ -2,7 +2,6 @@
 
 #include "VivalandTestGameMode.h"
 #include "VivalandTestPlayerController.h"
-#include "VivalandTestCharacter.h"
 #include "UObject/ConstructorHelpers.h"
 
 AVivalandTestGameMode::AVivalandTestGameMode()
@@ -22,5 +21,19 @@ AVivalandTestGameMode::AVivalandTestGameMode()
 	if(PlayerControllerBPClass.Class != NULL)
 	{
 		PlayerControllerClass = PlayerControllerBPClass.Class;
+	}
+
+	TeamScores.Emplace(EPlayerTeam::Red, 0);
+	TeamScores.Emplace(EPlayerTeam::Blue, 0);
+}
+
+void AVivalandTestGameMode::IncreaseTeamScore(TEnumAsByte<EPlayerTeam> Team, int32 Score)
+{
+	if (TeamScores.Contains(Team))
+	{
+		TeamScores[Team] += Score;
+		FString Message = FString::Printf(TEXT("Equipo: %s - Puntaje: %d"), *UEnum::GetValueAsString(Team), TeamScores[Team]);
+		if (GEngine)
+			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, Message);
 	}
 }

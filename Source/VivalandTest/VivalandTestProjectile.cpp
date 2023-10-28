@@ -5,12 +5,16 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "VivalandTestCharacter.h"
+#include "VivalandTestGameMode.h"
 
 // Sets default values
 AVivalandTestProjectile::AVivalandTestProjectile()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+
+	bReplicates = true;
 
 	if (!RootComponent)
 	{
@@ -39,6 +43,7 @@ AVivalandTestProjectile::AVivalandTestProjectile()
 	{
 		StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 		StaticMeshComponent->SetupAttachment(GetRootComponent());
+		StaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
 }
 
@@ -46,13 +51,36 @@ AVivalandTestProjectile::AVivalandTestProjectile()
 void AVivalandTestProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	if (GetOwner() != nullptr)
+	{
+		CollisionComponent->IgnoreActorWhenMoving(Owner, true);
+	}
 }
 
-// Called every frame
-void AVivalandTestProjectile::Tick(float DeltaTime)
+void AVivalandTestProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	Super::Tick(DeltaTime);
+	AVivalandTestCharacter* Character = Cast<AVivalandTestCharacter>(OtherActor);
+	AVivalandTestCharacter* LocalOwner = Cast<AVivalandTestCharacter>(GetOwner());
 
+	if (HasAuthority() && Character != nullptr && LocalOwner != nullptr)
+	{
+		if (Character->GetPlayerTeam() == LocalOwner->GetPlayerTeam())
+		{
+			Server_NotifyPlayerHit(Character);
+		}
+	}
+	Destroy();
 }
 
+void AVivalandTestProjectile::Server_NotifyPlayerHit_Implementation(AVivalandTestCharacter* Player)
+{
+	AVivalandTestGameMode* GameMode = Cast<AVivalandTestGameMode>(GetWorld()->GetAuthGameMode());
+	if (GameMode != nullptr)
+	{
+		int32 ScoreToIncrease = 1;
+		GameMode->IncreaseTeamScore(Player->GetPlayerTeam(), ScoreToIncrease);
+	}
+
+	if (GEngine)
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Server Increase Score"));
+}

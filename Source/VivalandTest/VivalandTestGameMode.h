@@ -3,16 +3,22 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameMode.h"
+#include "VivalandTestCharacter.h"
 #include "VivalandTestGameMode.generated.h"
 
 UCLASS(minimalapi)
-class AVivalandTestGameMode : public AGameModeBase
+class AVivalandTestGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
 public:
 	AVivalandTestGameMode();
+	void IncreaseTeamScore(TEnumAsByte<EPlayerTeam> Team, int32 Score);
+
+protected:
+
+	TMap<TEnumAsByte<EPlayerTeam>, int32> TeamScores;
 };
 
 

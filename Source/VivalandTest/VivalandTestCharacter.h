@@ -6,6 +6,15 @@
 #include "GameFramework/Character.h"
 #include "VivalandTestCharacter.generated.h"
 
+UENUM(BlueprintType)
+enum EPlayerTeam
+{
+	None	UMETA(DisplayName = "None"),
+	Red		UMETA(DisplayName = "Red"),
+	Blue	UMETA(DisplayName = "Blue")
+};
+
+
 UCLASS(Blueprintable)
 class AVivalandTestCharacter : public ACharacter
 {
@@ -21,6 +30,12 @@ public:
 	FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+
+	FORCEINLINE TEnumAsByte<EPlayerTeam> GetPlayerTeam() const { return PlayerTeam; }
+
+protected:
+
+	TEnumAsByte<EPlayerTeam> PlayerTeam;
 
 private:
 	/** Top down camera */
