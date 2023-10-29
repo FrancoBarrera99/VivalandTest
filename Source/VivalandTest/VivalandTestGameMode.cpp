@@ -3,6 +3,7 @@
 #include "VivalandTestGameMode.h"
 #include "VivalandTestPlayerController.h"
 #include "VivalandTestPlayerState.h"
+#include "GameFramework/HUD.h"
 #include "UObject/ConstructorHelpers.h"
 
 AVivalandTestGameMode::AVivalandTestGameMode()
@@ -23,6 +24,16 @@ AVivalandTestGameMode::AVivalandTestGameMode()
 	{
 		PlayerControllerClass = PlayerControllerBPClass.Class;
 	}
+
+	// set default HUD to our Blueprinted HUD
+	static ConstructorHelpers::FClassFinder<AHUD> HUDBPClass(TEXT("/Game/TopDown/Blueprints/BP_VivalandTestHUD"));
+	if (HUDBPClass.Class != NULL)
+	{
+		HUDClass = HUDBPClass.Class;
+	}
+
+	// set default PlayerState to our custom VivalandTestPlayerState
+	PlayerStateClass = AVivalandTestPlayerState::StaticClass();
 
 	TeamScores.Emplace(EPlayerTeam::Red, 0);
 	TeamScores.Emplace(EPlayerTeam::Blue, 0);

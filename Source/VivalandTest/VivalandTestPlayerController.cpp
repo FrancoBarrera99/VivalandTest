@@ -8,6 +8,7 @@
 #include "VivalandTestCharacter.h"
 #include "VivalandTestProjectile.h"
 #include "VivalandTestPlayerState.h"
+#include "VivalandTestHUD.h"
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
@@ -79,6 +80,10 @@ void AVivalandTestPlayerController::SetupInputComponent()
 
 		// Setup keybord input events
 		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, this, &AVivalandTestPlayerController::OnShootStarted);
+		EnhancedInputComponent->BindAction(ScoreboardAction, ETriggerEvent::Started, this, &AVivalandTestPlayerController::OnScoreboardStarted);
+		EnhancedInputComponent->BindAction(ScoreboardAction, ETriggerEvent::Completed, this, &AVivalandTestPlayerController::OnScoreboardReleased);
+		EnhancedInputComponent->BindAction(ScoreboardAction, ETriggerEvent::Canceled, this, &AVivalandTestPlayerController::OnScoreboardReleased);
+
 	}
 }
 
@@ -152,6 +157,24 @@ void AVivalandTestPlayerController::OnShootStarted()
 	FRotator SpawnRotation = GetPawn()->GetActorRotation();
 
 	Server_SpawnProjectile(SpawnPosition, SpawnRotation);
+}
+
+void AVivalandTestPlayerController::OnScoreboardStarted()
+{
+	AVivalandTestHUD* HUD = Cast<AVivalandTestHUD>(this->GetHUD());
+	if (HUD != nullptr)
+	{
+		HUD->ShowScoreboardGUI();
+	}
+}
+
+void AVivalandTestPlayerController::OnScoreboardReleased()
+{
+	AVivalandTestHUD* HUD = Cast<AVivalandTestHUD>(this->GetHUD());
+	if (HUD != nullptr)
+	{
+		HUD->HideScoreboardGUI();
+	}
 }
 
 void AVivalandTestPlayerController::Server_SpawnProjectile_Implementation(FVector SpawnPosition, FRotator SpawnRotation)

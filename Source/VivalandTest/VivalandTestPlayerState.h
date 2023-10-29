@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerState.h"
 #include "VivalandTestPlayerState.generated.h"
 
+UENUM(BlueprintType)
 enum class EPlayerTeam : uint8
 {
 	None,
@@ -22,12 +23,29 @@ class VIVALANDTEST_API AVivalandTestPlayerState : public APlayerState
 	GENERATED_BODY()
 
 public:
-	FORCEINLINE EPlayerTeam GetPlayerTeam() const { return Team; };
-	FORCEINLINE int32 GetPlayerScore() const { return Score; };
+
+	AVivalandTestPlayerState();
+	EPlayerTeam GetPlayerTeam() const;
+	UFUNCTION(BlueprintCallable)
+	int32 GetPlayerScore() const;
+	UFUNCTION(BlueprintCallable)
+	FText GetPlayerUsername() const;
+	UFUNCTION(BlueprintCallable)
+	void SetPlayerUsername(FText NewUsername);
+	UFUNCTION(BlueprintCallable)
+	void SetPlayerTeam(EPlayerTeam NewTeam);
 	void IncreasePlayerScore(int32 Value);
+	UFUNCTION(Server, Reliable, BlueprintCallable)
+	void Server_InitializePlayer(const FText& NewUsername, EPlayerTeam NewPlayerTeam);
+	void Server_InitializePlayer_Implementation(const FText& NewUsername, EPlayerTeam NewPlayerTeam);
 
 protected:
-	EPlayerTeam Team;
-	int32 Score;
-	
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+	UPROPERTY(Replicated)
+	EPlayerTeam PlayerTeam;
+	UPROPERTY(Replicated)
+	int32 PlayerScore;
+	UPROPERTY(Replicated)
+	FText PlayerUsername;
 };

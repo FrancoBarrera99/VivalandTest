@@ -44,6 +44,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* ShootAction;
 
+	/** Scoreboard Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ScoreboardAction;
+
 	EPlayerTeam GetPlayerTeam();
 
 	UFUNCTION(BlueprintCallable)
@@ -67,6 +71,10 @@ protected:
 
 	/** Input handlers for Shoot action. */
 	void OnShootStarted();
+
+	/** Input handlers for Scoreboard action. */
+	void OnScoreboardStarted();
+	void OnScoreboardReleased();
 
 	UFUNCTION(Server, Reliable)
 	void Server_SpawnProjectile(FVector SpawnPosition, FRotator SpawnRotation);
