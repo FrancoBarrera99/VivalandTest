@@ -70,7 +70,7 @@ void AVivalandTestProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 
 		if (CharacterPC != nullptr && LocalOwnerPC != nullptr)
 		{
-			if (CharacterPC->GetPlayerTeam() == LocalOwnerPC->GetPlayerTeam())
+			if (CharacterPC->GetPlayerTeam() != LocalOwnerPC->GetPlayerTeam())
 			{
 				Server_NotifyPlayerHit(Character);
 			}
@@ -87,10 +87,7 @@ void AVivalandTestProjectile::Server_NotifyPlayerHit_Implementation(AVivalandTes
 	{
 		EPlayerTeam PlayerTeam = PlayerPC->GetPlayerTeam();
 		int32 ScoreToIncrease = 1;
-		GameMode->IncreaseTeamScore(PlayerTeam, ScoreToIncrease);
 		PlayerPC->IncreasePlayerScore(ScoreToIncrease);
+		GameMode->RestartPlayer(PlayerPC);
 	}
-
-	if (GEngine)
-		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("Server Increase Score"));
 }

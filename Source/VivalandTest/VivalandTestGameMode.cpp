@@ -3,6 +3,7 @@
 #include "VivalandTestGameMode.h"
 #include "VivalandTestPlayerController.h"
 #include "VivalandTestPlayerState.h"
+#include "VivalandTestCharacter.h"
 #include "GameFramework/HUD.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -34,18 +35,22 @@ AVivalandTestGameMode::AVivalandTestGameMode()
 
 	// set default PlayerState to our custom VivalandTestPlayerState
 	PlayerStateClass = AVivalandTestPlayerState::StaticClass();
-
-	TeamScores.Emplace(EPlayerTeam::Red, 0);
-	TeamScores.Emplace(EPlayerTeam::Blue, 0);
 }
 
-void AVivalandTestGameMode::IncreaseTeamScore(EPlayerTeam Team, int32 Score)
+void AVivalandTestGameMode::RestartPlayer(AController* NewPlayer)
 {
-	if (TeamScores.Contains(Team))
-	{
-		TeamScores[Team] += Score;
-		FString Message = FString::Printf(TEXT("Equipo: %s - Puntaje: %d"), *UEnum::GetValueAsString(Team), TeamScores[Team]);
-		if (GEngine)
-			GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Blue, Message);
-	}
+	Super::RestartPlayer(NewPlayer);
+	if (NewPlayer == nullptr)
+		return;
+
+	AActor* PlayerStart = FindPlayerStart(NewPlayer);
+	AActor* PlayerPawn = NewPlayer->GetPawn();
+
+	if (PlayerPawn == nullptr || PlayerStart == nullptr)
+		return;
+
+	FVector NewPosition = PlayerStart->GetActorLocation();
+	FRotator NewRotation = PlayerStart->GetActorRotation();
+
+	PlayerPawn->SetActorLocationAndRotation(NewPosition, NewRotation);
 }
