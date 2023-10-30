@@ -9,6 +9,7 @@
 #include "VivalandTestCharacter.h"
 #include "VivalandTestPlayerController.h"
 #include "VivalandTestAIController.h"
+#include "VivalandTestPlayerState.h"
 #include "VivalandTestGameMode.h"
 
 // Sets default values
@@ -78,7 +79,7 @@ void AVivalandTestProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 
 		if (AICharacterUserPC != nullptr && LocalOwnerPC != nullptr)
 		{
-			if (AICharacterUserPC->GetPlayerTeam() != LocalOwnerPC->GetPlayerTeam())
+			if (AICharacterUserPC->GetPlayerTeam() != LocalOwnerPC->GetPlayerTeam() && AICharacterUserPC->GetPlayerTeam() != EPlayerTeam::None)
 			{
 				Server_NotifyPlayerHit(AICharacter);
 			}
