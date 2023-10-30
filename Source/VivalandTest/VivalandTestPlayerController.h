@@ -47,6 +47,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void IncreasePlayerScore(int32 Value);
 
+	AVivalandTestAIController* GetAIController();
+
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
@@ -80,6 +82,7 @@ protected:
 
 private:
 	FVector CachedDestination;
+	FRotator CachedRotation;
 	UClass* ProjectileClass;
 	AVivalandTestCharacter* AICharacter;
 	AVivalandTestAIController* AIController;

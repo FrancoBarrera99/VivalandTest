@@ -5,8 +5,9 @@
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "VivalandTestCharacter.h"
+#include "VivalandTestPawn.h"
 #include "VivalandTestPlayerController.h"
+#include "VivalandTestAIController.h"
 #include "VivalandTestGameMode.h"
 
 // Sets default values
@@ -48,20 +49,27 @@ AVivalandTestProjectile::AVivalandTestProjectile()
 	}
 }
 
+void AVivalandTestProjectile::InitializeProjectile(TArray<AActor*> IgnoreActors)
+{
+	for (auto Actor : IgnoreActors) 
+	{
+		if (Actor != nullptr)
+		{
+			CollisionComponent->IgnoreActorWhenMoving(Actor, true);
+		}
+	}
+}
+
 // Called when the game starts or when spawned
 void AVivalandTestProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	if (GetOwner() != nullptr)
-	{
-		CollisionComponent->IgnoreActorWhenMoving(Owner, true);
-	}
 }
 
 void AVivalandTestProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	AVivalandTestCharacter* Character = Cast<AVivalandTestCharacter>(OtherActor);
-	AVivalandTestCharacter* LocalOwner = Cast<AVivalandTestCharacter>(GetOwner());
+	AVivalandTestPawn* Character = Cast<AVivalandTestPawn>(OtherActor);
+	AVivalandTestPawn* LocalOwner = Cast<AVivalandTestPawn>(GetOwner());
 
 	if (HasAuthority() && Character != nullptr && LocalOwner != nullptr)
 	{
@@ -76,18 +84,26 @@ void AVivalandTestProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 			}
 		}
 	}
+
+	if (OtherActor != nullptr)
+	{
+		FString ActorName = OtherActor->GetName();
+		FString Message = FString::Printf(TEXT("Projectile Overlap: %s"), *ActorName);
+		GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Red, Message);
+	}
 	Destroy();
 }
 
-void AVivalandTestProjectile::Server_NotifyPlayerHit_Implementation(AVivalandTestCharacter* Player)
+void AVivalandTestProjectile::Server_NotifyPlayerHit_Implementation(AVivalandTestPawn* Player)
 {
 	AVivalandTestGameMode* GameMode = Cast<AVivalandTestGameMode>(GetWorld()->GetAuthGameMode());
 	AVivalandTestPlayerController* PlayerPC = Cast<AVivalandTestPlayerController>(Player->GetController());
+
 	if (GameMode != nullptr && PlayerPC != nullptr)
 	{
 		EPlayerTeam PlayerTeam = PlayerPC->GetPlayerTeam();
 		int32 ScoreToIncrease = 1;
 		PlayerPC->IncreasePlayerScore(ScoreToIncrease);
-		GameMode->RestartPlayer(PlayerPC);
+		GameMode->RestartPlayer(PlayerPC->GetAIController());
 	}
 }

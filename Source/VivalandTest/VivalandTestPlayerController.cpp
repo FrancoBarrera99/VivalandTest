@@ -91,6 +91,11 @@ void AVivalandTestPlayerController::IncreasePlayerScore(int32 Value)
 	}
 }
 
+AVivalandTestAIController* AVivalandTestPlayerController::GetAIController()
+{
+	return AIController;
+}
+
 void AVivalandTestPlayerController::SetupInputComponent()
 {
 	// set up gameplay key bindings
@@ -116,26 +121,32 @@ void AVivalandTestPlayerController::SetupInputComponent()
 
 void AVivalandTestPlayerController::OnInputStarted()
 {
-	StopMovement();
+	//StopMovement();
 }
 
 // Triggered every frame when the input is held down
 void AVivalandTestPlayerController::OnSetDestinationTriggered()
 {
-	// We look for the location in the world where the player has pressed the input
-	FHitResult Hit;
-	bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
-
-	// If we hit a surface, cache the location
-	if (bHitSuccessful)
-	{
-		CachedDestination = Hit.Location;
-	}
+	
 }
 
 void AVivalandTestPlayerController::OnSetDestinationReleased()
 {
-	// We move there and spawn some particles
+	FHitResult Hit;
+	bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
+
+	if (bHitSuccessful)
+	{
+		CachedDestination = Hit.Location;
+
+		if (GetPawn() != nullptr)
+		{
+			FVector Direction = (CachedDestination - GetPawn()->GetActorLocation()).GetSafeNormal();
+			float DesiredYaw = FMath::Atan2(Direction.Y, Direction.X) * 180.0f / PI;
+			CachedRotation = FRotator(0.0f, DesiredYaw, 0.0f);
+		}
+	}
+
 	Server_MoveToLocation(CachedDestination);
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, FXCursor, CachedDestination, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true, ENCPoolMethod::None, true);
 }
@@ -143,9 +154,7 @@ void AVivalandTestPlayerController::OnSetDestinationReleased()
 void AVivalandTestPlayerController::OnShootStarted()
 {
 	FVector SpawnPosition = GetPawn()->GetActorLocation();
-	FRotator SpawnRotation = GetPawn()->GetActorRotation();
-
-	Server_SpawnProjectile(SpawnPosition, SpawnRotation);
+	Server_SpawnProjectile(SpawnPosition, CachedRotation);
 }
 
 void AVivalandTestPlayerController::OnScoreboardStarted()
@@ -170,11 +179,25 @@ void AVivalandTestPlayerController::Server_SpawnProjectile_Implementation(FVecto
 {
 	if (ProjectileClass != nullptr)
 	{
-		FTransform SpawnTransform(SpawnRotation, SpawnPosition, FVector::OneVector);
+		const float SpawnOffset = 75.0f; 
+
+		FVector OffsetDirection = SpawnRotation.Vector();
+		OffsetDirection.Normalize();
+		FVector Offset = OffsetDirection * SpawnOffset;
+		FVector OffsetSpawnPosition = SpawnPosition + Offset;
+		FTransform SpawnTransform(SpawnRotation, OffsetSpawnPosition, FVector::OneVector);
+
 		FActorSpawnParameters SpawnParameters;
-		SpawnParameters.Owner = GetPawn();
-		AActor* SpawnedProjectile = GetWorld()->SpawnActor(ProjectileClass, &SpawnTransform, SpawnParameters);
-		GetPawn()->MoveIgnoreActorAdd(SpawnedProjectile);
+		SpawnParameters.Owner = this;
+		SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AVivalandTestProjectile* SpawnedProjectile = Cast<AVivalandTestProjectile>(GetWorld()->SpawnActor(ProjectileClass, &SpawnTransform, SpawnParameters));
+		if (SpawnedProjectile != nullptr)
+		{
+			SpawnedProjectile->InitializeProjectile({ GetPawn(), AICharacter });
+			GetPawn()->MoveIgnoreActorAdd(SpawnedProjectile);
+			AICharacter->MoveIgnoreActorAdd(SpawnedProjectile);
+		}
 	}
 }
 

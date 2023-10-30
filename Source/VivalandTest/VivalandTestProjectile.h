@@ -9,7 +9,7 @@
 class UProjectileMovementComponent;
 class USphereComponent;
 class UStaticMeshComponent;
-class AVivalandTestCharacter;
+class AVivalandTestPawn;
 
 UCLASS()
 class VIVALANDTEST_API AVivalandTestProjectile : public AActor
@@ -19,6 +19,7 @@ class VIVALANDTEST_API AVivalandTestProjectile : public AActor
 public:
 	// Sets default values for this actor's properties
 	AVivalandTestProjectile();
+	void InitializeProjectile(TArray<AActor*> IgnoreActors);
 
 protected:
 	// Called when the game starts or when spawned
@@ -26,8 +27,8 @@ protected:
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 
 	UFUNCTION(Server, Reliable)
-	void Server_NotifyPlayerHit(AVivalandTestCharacter* Player);
-	void Server_NotifyPlayerHit_Implementation(AVivalandTestCharacter* Player);
+	void Server_NotifyPlayerHit(AVivalandTestPawn* Player);
+	void Server_NotifyPlayerHit_Implementation(AVivalandTestPawn* Player);
 
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
 	USphereComponent* CollisionComponent;
