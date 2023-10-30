@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "VivalandTestCharacter.generated.h"
 
+class AVivalandTestPlayerController;
+
 UCLASS(Blueprintable)
 class AVivalandTestCharacter : public ACharacter
 {
@@ -22,6 +24,10 @@ public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
+	void InitializeCharacter(AVivalandTestPlayerController* NewUserPlayerController);
+
+	AVivalandTestPlayerController* GetUserPlayerController();
+
 private:
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -30,5 +36,7 @@ private:
 	/** Camera boom positioning the camera above the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
+
+	AVivalandTestPlayerController* UserPlayerController;
 };
 

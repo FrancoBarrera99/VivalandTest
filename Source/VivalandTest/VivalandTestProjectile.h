@@ -27,8 +27,8 @@ protected:
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 
 	UFUNCTION(Server, Reliable)
-	void Server_NotifyPlayerHit(AVivalandTestPawn* Player);
-	void Server_NotifyPlayerHit_Implementation(AVivalandTestPawn* Player);
+	void Server_NotifyPlayerHit(AVivalandTestCharacter* AICharacter);
+	void Server_NotifyPlayerHit_Implementation(AVivalandTestCharacter* AICharacter);
 
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
 	USphereComponent* CollisionComponent;

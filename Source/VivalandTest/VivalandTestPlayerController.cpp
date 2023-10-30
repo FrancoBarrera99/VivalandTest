@@ -68,6 +68,7 @@ void AVivalandTestPlayerController::OnPossess(APawn* InPawn)
 		{
 			AIController->Possess(AICharacter);
 			VivalandPawn->InitializePawn(AICharacter);
+			AICharacter->InitializeCharacter(this);
 		}
 	}
 }

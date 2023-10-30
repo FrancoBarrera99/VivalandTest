@@ -49,3 +49,13 @@ void AVivalandTestCharacter::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
 }
+
+void AVivalandTestCharacter::InitializeCharacter(AVivalandTestPlayerController* NewUserPlayerController)
+{
+	UserPlayerController = NewUserPlayerController;
+}
+
+AVivalandTestPlayerController* AVivalandTestCharacter::GetUserPlayerController()
+{
+	return UserPlayerController;
+}

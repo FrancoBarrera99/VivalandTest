@@ -6,6 +6,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "VivalandTestPawn.h"
+#include "VivalandTestCharacter.h"
 #include "VivalandTestPlayerController.h"
 #include "VivalandTestAIController.h"
 #include "VivalandTestGameMode.h"
@@ -68,19 +69,18 @@ void AVivalandTestProjectile::BeginPlay()
 
 void AVivalandTestProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 {
-	AVivalandTestPawn* Character = Cast<AVivalandTestPawn>(OtherActor);
-	AVivalandTestPawn* LocalOwner = Cast<AVivalandTestPawn>(GetOwner());
+	AVivalandTestCharacter* AICharacter = Cast<AVivalandTestCharacter>(OtherActor);
+	AVivalandTestPlayerController* LocalOwnerPC = Cast<AVivalandTestPlayerController>(GetOwner());
 
-	if (HasAuthority() && Character != nullptr && LocalOwner != nullptr)
+	if (HasAuthority() && AICharacter != nullptr && LocalOwnerPC != nullptr)
 	{
-		AVivalandTestPlayerController* CharacterPC = Cast<AVivalandTestPlayerController>(Character->GetController());
-		AVivalandTestPlayerController* LocalOwnerPC = Cast<AVivalandTestPlayerController>(LocalOwner->GetController());
+		AVivalandTestPlayerController* AICharacterUserPC = AICharacter->GetUserPlayerController();
 
-		if (CharacterPC != nullptr && LocalOwnerPC != nullptr)
+		if (AICharacterUserPC != nullptr && LocalOwnerPC != nullptr)
 		{
-			if (CharacterPC->GetPlayerTeam() != LocalOwnerPC->GetPlayerTeam())
+			if (AICharacterUserPC->GetPlayerTeam() != LocalOwnerPC->GetPlayerTeam())
 			{
-				Server_NotifyPlayerHit(Character);
+				Server_NotifyPlayerHit(AICharacter);
 			}
 		}
 	}
@@ -94,16 +94,16 @@ void AVivalandTestProjectile::NotifyActorBeginOverlap(AActor* OtherActor)
 	Destroy();
 }
 
-void AVivalandTestProjectile::Server_NotifyPlayerHit_Implementation(AVivalandTestPawn* Player)
+void AVivalandTestProjectile::Server_NotifyPlayerHit_Implementation(AVivalandTestCharacter* AICharacter)
 {
 	AVivalandTestGameMode* GameMode = Cast<AVivalandTestGameMode>(GetWorld()->GetAuthGameMode());
-	AVivalandTestPlayerController* PlayerPC = Cast<AVivalandTestPlayerController>(Player->GetController());
+	AVivalandTestPlayerController* AICharacterUserPC = AICharacter->GetUserPlayerController();
 
-	if (GameMode != nullptr && PlayerPC != nullptr)
+	if (GameMode != nullptr && AICharacterUserPC != nullptr)
 	{
-		EPlayerTeam PlayerTeam = PlayerPC->GetPlayerTeam();
+		EPlayerTeam PlayerTeam = AICharacterUserPC->GetPlayerTeam();
 		int32 ScoreToIncrease = 1;
-		PlayerPC->IncreasePlayerScore(ScoreToIncrease);
-		GameMode->RestartPlayer(PlayerPC->GetAIController());
+		AICharacterUserPC->IncreasePlayerScore(ScoreToIncrease);
+		GameMode->RestartPlayer(AICharacter->GetController());
 	}
 }
