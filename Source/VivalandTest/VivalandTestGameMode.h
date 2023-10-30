@@ -4,11 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+
 #include "VivalandTestGameMode.generated.h"
 
-enum class EPlayerTeam : uint8;
+// Forward Declarations
 class AVivalandTestCharacter;
+enum class EPlayerTeam : uint8;
 
+/**
+ *	The purpose of this class is to control game related rules
+ */
 UCLASS(minimalapi)
 class AVivalandTestGameMode : public AGameMode
 {

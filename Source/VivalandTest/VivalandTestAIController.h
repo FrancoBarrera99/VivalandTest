@@ -7,7 +7,7 @@
 #include "VivalandTestAIController.generated.h"
 
 /**
- * 
+ *	The purpose of this class is to AI control a VivalandTestCharacter
  */
 UCLASS()
 class VIVALANDTEST_API AVivalandTestAIController : public AAIController

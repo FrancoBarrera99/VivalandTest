@@ -4,10 +4,15 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+
 #include "VivalandTestCharacter.generated.h"
 
+// Forward Declarations
 class AVivalandTestPlayerController;
 
+/**
+ *	The purpose of this class is to be an AI controlled character.
+ */
 UCLASS(Blueprintable)
 class AVivalandTestCharacter : public ACharacter
 {
@@ -15,28 +20,16 @@ class AVivalandTestCharacter : public ACharacter
 
 public:
 	AVivalandTestCharacter();
-
-	// Called every frame.
-	virtual void Tick(float DeltaSeconds) override;
-
-	/** Returns TopDownCameraComponent subobject **/
-	FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-
 	void InitializeCharacter(AVivalandTestPlayerController* NewUserPlayerController);
-
+	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE class UCameraComponent* GetTopDownCameraComponent() const { return TopDownCameraComponent; }
 	AVivalandTestPlayerController* GetUserPlayerController();
 
 private:
-	/** Top down camera */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* TopDownCameraComponent;
-
-	/** Camera boom positioning the camera above the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* TopDownCameraComponent;
 	AVivalandTestPlayerController* UserPlayerController;
 };
 

@@ -3,17 +3,21 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Templates/SubclassOf.h"
 #include "GameFramework/PlayerController.h"
 #include "InputActionValue.h"
+#include "Templates/SubclassOf.h"
+
 #include "VivalandTestPlayerController.generated.h"
 
-/** Forward declaration to improve compiling times */
-class UNiagaraSystem;
-class AVivalandTestCharacter;
+// Forward Declarations
 class AVivalandTestAIController;
+class AVivalandTestCharacter;
+class UNiagaraSystem;
 enum class EPlayerTeam : uint8;
 
+/**
+ *	The purpose of this class is handle user input actions
+ */
 UCLASS()
 class AVivalandTestPlayerController : public APlayerController
 {
@@ -21,73 +25,54 @@ class AVivalandTestPlayerController : public APlayerController
 
 public:
 	AVivalandTestPlayerController();
-
-	/** FX Class that we will spawn when clicking */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
-	UNiagaraSystem* FXCursor;
-
-	/** MappingContext */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	class UInputMappingContext* DefaultMappingContext;
-	
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	class UInputAction* SetDestinationClickAction;
-
-	/** Shoot Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* ShootAction;
-
-	/** Scoreboard Input Action */
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	class UInputAction* ScoreboardAction;
-
+	AVivalandTestAIController* GetAIController();
 	EPlayerTeam GetPlayerTeam();
-
 	UFUNCTION(BlueprintCallable)
 	void IncreasePlayerScore(int32 Value);
 
-	AVivalandTestAIController* GetAIController();
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputMappingContext* DefaultMappingContext;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input)
+	UNiagaraSystem* FXCursor;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ScoreboardAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
+	class UInputAction* SetDestinationClickAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* ShootAction;
 
 protected:
-	/** True if the controlled character should navigate to the mouse cursor. */
-	uint32 bMoveToMouseCursor : 1;
-
-	virtual void SetupInputComponent() override;
-	
-	// To add mapping context
+	// Overrides Section
 	virtual void BeginPlay() override;
-
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void SetupInputComponent() override;
 
-	/** Input handlers for SetDestination action. */
-	void OnInputStarted();
-	void OnSetDestinationTriggered();
+	// Input Handlers Section
+	void OnScoreboardReleased();
+	void OnScoreboardStarted();
 	void OnSetDestinationReleased();
-
-	/** Input handlers for Shoot action. */
 	void OnShootStarted();
 
-	/** Input handlers for Scoreboard action. */
-	void OnScoreboardStarted();
-	void OnScoreboardReleased();
-
+	// Functions Section
+	UFUNCTION(Server, Reliable)
+	void Server_MoveToLocation(FVector NewDestination);
+	void Server_MoveToLocation_Implementation(FVector NewDestination);
 	UFUNCTION(Server, Reliable)
 	void Server_SpawnProjectile(FVector SpawnPosition, FRotator SpawnRotation);
 	void Server_SpawnProjectile_Implementation(FVector SpawnPosition, FRotator SpawnRotation);
 
-	UFUNCTION(Server, Reliable)
-	void Server_MoveToLocation(FVector NewDestination);
-	void Server_MoveToLocation_Implementation(FVector NewDestination);
+protected:
+	uint32 bMoveToMouseCursor : 1;
 
 private:
+	AVivalandTestAIController* AIController;
+	UClass* AIControllerClass;
+	AVivalandTestCharacter* AICharacter;
+	UClass* AICharacterClass;
 	FVector CachedDestination;
 	FRotator CachedRotation;
 	UClass* ProjectileClass;
-	AVivalandTestCharacter* AICharacter;
-	AVivalandTestAIController* AIController;
-	UClass* AICharacterClass;
-	UClass* AIControllerClass;
 };
 
 

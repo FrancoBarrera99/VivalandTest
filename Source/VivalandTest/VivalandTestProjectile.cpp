@@ -2,38 +2,31 @@
 
 
 #include "VivalandTestProjectile.h"
-#include "Components/SphereComponent.h"
-#include "Components/StaticMeshComponent.h"
-#include "GameFramework/ProjectileMovementComponent.h"
-#include "VivalandTestPawn.h"
-#include "VivalandTestCharacter.h"
-#include "VivalandTestPlayerController.h"
-#include "VivalandTestAIController.h"
-#include "VivalandTestPlayerState.h"
-#include "VivalandTestGameMode.h"
 
-// Sets default values
+#include "Components/StaticMeshComponent.h"
+#include "Components/SphereComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
+#include "VivalandTestAIController.h"
+#include "VivalandTestCharacter.h"
+#include "VivalandTestGameMode.h"
+#include "VivalandTestPawn.h"
+#include "VivalandTestPlayerController.h"
+#include "VivalandTestPlayerState.h"
+
 AVivalandTestProjectile::AVivalandTestProjectile()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-
 	bReplicates = true;
-
 	if (!RootComponent)
 	{
 		RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("ProjectileSceneComponent"));
 	}
-
-	// Setup Collision Component
 	if (CollisionComponent == nullptr)
 	{
 		CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollisionComponent"));
 		CollisionComponent->InitSphereRadius(15.0f);
 		RootComponent = CollisionComponent;
 	}
-
-	// Setup Projectile Component
 	if (ProjectileComponent == nullptr)
 	{
 		ProjectileComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
@@ -41,8 +34,6 @@ AVivalandTestProjectile::AVivalandTestProjectile()
 		ProjectileComponent->MaxSpeed = 1000.0f;
 		ProjectileComponent->ProjectileGravityScale = 0.0f;
 	}
-
-	// Setup Static Mesh Component
 	if (StaticMeshComponent == nullptr)
 	{
 		StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
@@ -60,12 +51,6 @@ void AVivalandTestProjectile::InitializeProjectile(TArray<AActor*> IgnoreActors)
 			CollisionComponent->IgnoreActorWhenMoving(Actor, true);
 		}
 	}
-}
-
-// Called when the game starts or when spawned
-void AVivalandTestProjectile::BeginPlay()
-{
-	Super::BeginPlay();
 }
 
 void AVivalandTestProjectile::NotifyActorBeginOverlap(AActor* OtherActor)

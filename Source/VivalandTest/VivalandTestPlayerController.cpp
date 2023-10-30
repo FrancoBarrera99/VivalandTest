@@ -1,19 +1,20 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "VivalandTestPlayerController.h"
-#include "GameFramework/Pawn.h"
+
 #include "Blueprint/AIBlueprintHelperLibrary.h"
-#include "NiagaraSystem.h"
-#include "NiagaraFunctionLibrary.h"
-#include "VivalandTestCharacter.h"
-#include "VivalandTestPawn.h"
-#include "VivalandTestAIController.h"
-#include "VivalandTestProjectile.h"
-#include "VivalandTestPlayerState.h"
-#include "VivalandTestHUD.h"
-#include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Engine/World.h"
+#include "GameFramework/Pawn.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
+#include "VivalandTestAIController.h"
+#include "VivalandTestCharacter.h"
+#include "VivalandTestHUD.h"
+#include "VivalandTestPawn.h"
+#include "VivalandTestPlayerState.h"
+#include "VivalandTestProjectile.h"
 
 AVivalandTestPlayerController::AVivalandTestPlayerController()
 {
@@ -21,7 +22,6 @@ AVivalandTestPlayerController::AVivalandTestPlayerController()
 	DefaultMouseCursor = EMouseCursor::Default;
 	CachedDestination = FVector::ZeroVector;
 
-	//Find AIControlled Classes
 	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/TopDown/Blueprints/BP_TopDownCharacter"));
 	if (PlayerPawnBPClass.Class != nullptr)
 	{
@@ -36,16 +36,35 @@ AVivalandTestPlayerController::AVivalandTestPlayerController()
 	}
 }
 
-void AVivalandTestPlayerController::BeginPlay()
+AVivalandTestAIController* AVivalandTestPlayerController::GetAIController()
 {
-	// Call the base class  
-	Super::BeginPlay();
+	return AIController;
+}
 
-	//Add Input Mapping Context
-	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+EPlayerTeam AVivalandTestPlayerController::GetPlayerTeam()
+{
+	AVivalandTestPlayerState* PS = Cast<AVivalandTestPlayerState>(PlayerState);
+	if (PS != nullptr)
 	{
-		Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		return PS->GetPlayerTeam();
 	}
+	return EPlayerTeam::None;
+}
+
+void AVivalandTestPlayerController::IncreasePlayerScore(int32 Value)
+{
+	AVivalandTestPlayerState* PS = Cast<AVivalandTestPlayerState>(PlayerState);
+	if (PS != nullptr)
+	{
+		PS->IncreasePlayerScore(Value);
+	}
+}
+
+void AVivalandTestPlayerController::BeginPlay()
+{ 
+	Super::BeginPlay();
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+		Subsystem->AddMappingContext(DefaultMappingContext, 0);
 }
 
 void AVivalandTestPlayerController::OnPossess(APawn* InPawn)
@@ -73,62 +92,38 @@ void AVivalandTestPlayerController::OnPossess(APawn* InPawn)
 	}
 }
 
-EPlayerTeam AVivalandTestPlayerController::GetPlayerTeam()
-{
-	AVivalandTestPlayerState* PS = Cast<AVivalandTestPlayerState>(PlayerState);
-	if (PS != nullptr)
-	{
-		return PS->GetPlayerTeam();
-	}
-	return EPlayerTeam::None;
-}
-
-void AVivalandTestPlayerController::IncreasePlayerScore(int32 Value)
-{
-	AVivalandTestPlayerState* PS = Cast<AVivalandTestPlayerState>(PlayerState);
-	if (PS != nullptr)
-	{
-		PS->IncreasePlayerScore(Value);
-	}
-}
-
-AVivalandTestAIController* AVivalandTestPlayerController::GetAIController()
-{
-	return AIController;
-}
 
 void AVivalandTestPlayerController::SetupInputComponent()
 {
-	// set up gameplay key bindings
 	Super::SetupInputComponent();
-
-	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent))
 	{
-		// Setup mouse input events
-		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Started, this, &AVivalandTestPlayerController::OnInputStarted);
-		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Triggered, this, &AVivalandTestPlayerController::OnSetDestinationTriggered);
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Completed, this, &AVivalandTestPlayerController::OnSetDestinationReleased);
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Canceled, this, &AVivalandTestPlayerController::OnSetDestinationReleased);
 
-		// Setup keybord input events
 		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, this, &AVivalandTestPlayerController::OnShootStarted);
 		EnhancedInputComponent->BindAction(ScoreboardAction, ETriggerEvent::Started, this, &AVivalandTestPlayerController::OnScoreboardStarted);
 		EnhancedInputComponent->BindAction(ScoreboardAction, ETriggerEvent::Completed, this, &AVivalandTestPlayerController::OnScoreboardReleased);
 		EnhancedInputComponent->BindAction(ScoreboardAction, ETriggerEvent::Canceled, this, &AVivalandTestPlayerController::OnScoreboardReleased);
-
 	}
 }
 
-void AVivalandTestPlayerController::OnInputStarted()
+void AVivalandTestPlayerController::OnScoreboardReleased()
 {
-	//StopMovement();
+	AVivalandTestHUD* HUD = Cast<AVivalandTestHUD>(this->GetHUD());
+	if (HUD != nullptr)
+	{
+		HUD->HideScoreboardGUI();
+	}
 }
 
-// Triggered every frame when the input is held down
-void AVivalandTestPlayerController::OnSetDestinationTriggered()
+void AVivalandTestPlayerController::OnScoreboardStarted()
 {
-	
+	AVivalandTestHUD* HUD = Cast<AVivalandTestHUD>(this->GetHUD());
+	if (HUD != nullptr)
+	{
+		HUD->ShowScoreboardGUI();
+	}
 }
 
 void AVivalandTestPlayerController::OnSetDestinationReleased()
@@ -158,21 +153,11 @@ void AVivalandTestPlayerController::OnShootStarted()
 	Server_SpawnProjectile(SpawnPosition, CachedRotation);
 }
 
-void AVivalandTestPlayerController::OnScoreboardStarted()
+void AVivalandTestPlayerController::Server_MoveToLocation_Implementation(FVector NewDestination)
 {
-	AVivalandTestHUD* HUD = Cast<AVivalandTestHUD>(this->GetHUD());
-	if (HUD != nullptr)
+	if (AIController != nullptr)
 	{
-		HUD->ShowScoreboardGUI();
-	}
-}
-
-void AVivalandTestPlayerController::OnScoreboardReleased()
-{
-	AVivalandTestHUD* HUD = Cast<AVivalandTestHUD>(this->GetHUD());
-	if (HUD != nullptr)
-	{
-		HUD->HideScoreboardGUI();
+		AIController->MoveToLocation(NewDestination);
 	}
 }
 
@@ -199,13 +184,5 @@ void AVivalandTestPlayerController::Server_SpawnProjectile_Implementation(FVecto
 			GetPawn()->MoveIgnoreActorAdd(SpawnedProjectile);
 			AICharacter->MoveIgnoreActorAdd(SpawnedProjectile);
 		}
-	}
-}
-
-void AVivalandTestPlayerController::Server_MoveToLocation_Implementation(FVector NewDestination)
-{
-	if (AIController != nullptr)
-	{
-		AIController->MoveToLocation(NewDestination);
 	}
 }

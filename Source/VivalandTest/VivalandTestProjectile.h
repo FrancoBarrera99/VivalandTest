@@ -4,38 +4,41 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+
 #include "VivalandTestProjectile.generated.h"
 
+// Forward Declarations
+class AVivalandTestPawn;
 class UProjectileMovementComponent;
 class USphereComponent;
 class UStaticMeshComponent;
-class AVivalandTestPawn;
 
+/**
+ *	The purpose of this class to handle collision with AVivalandTestCharacters as a projectile.
+ */
 UCLASS()
 class VIVALANDTEST_API AVivalandTestProjectile : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this actor's properties
 	AVivalandTestProjectile();
 	void InitializeProjectile(TArray<AActor*> IgnoreActors);
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
+	//Override Section
 	virtual void NotifyActorBeginOverlap(AActor* OtherActor) override;
 
+	//Functions Section
 	UFUNCTION(Server, Reliable)
 	void Server_NotifyPlayerHit(AVivalandTestCharacter* AICharacter);
 	void Server_NotifyPlayerHit_Implementation(AVivalandTestCharacter* AICharacter);
 
+protected:
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
 	USphereComponent* CollisionComponent;
-
 	UPROPERTY(VisibleAnywhere, Category = Movement)
 	UProjectileMovementComponent* ProjectileComponent;
-
 	UPROPERTY(VisibleAnywhere, Category = Projectile)
 	UStaticMeshComponent* StaticMeshComponent;
 };
