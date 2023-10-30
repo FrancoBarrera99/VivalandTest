@@ -6,6 +6,8 @@
 #include "NiagaraSystem.h"
 #include "NiagaraFunctionLibrary.h"
 #include "VivalandTestCharacter.h"
+#include "VivalandTestPawn.h"
+#include "VivalandTestAIController.h"
 #include "VivalandTestProjectile.h"
 #include "VivalandTestPlayerState.h"
 #include "VivalandTestHUD.h"
@@ -18,7 +20,14 @@ AVivalandTestPlayerController::AVivalandTestPlayerController()
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
 	CachedDestination = FVector::ZeroVector;
-	FollowTime = 0.f;
+
+	//Find AIControlled Classes
+	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/TopDown/Blueprints/BP_TopDownCharacter"));
+	if (PlayerPawnBPClass.Class != nullptr)
+	{
+		AICharacterClass = PlayerPawnBPClass.Class;
+	}
+	AIControllerClass = AVivalandTestAIController::StaticClass();
 
 	static ConstructorHelpers::FClassFinder<AActor> ProjectileBPClass(TEXT("/Game/TopDown/Blueprints/BP_VivalandTestProjectile"));
 	if (ProjectileBPClass.Class != nullptr)
@@ -36,6 +45,30 @@ void AVivalandTestPlayerController::BeginPlay()
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
+	}
+}
+
+void AVivalandTestPlayerController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+
+	if (AICharacter != nullptr || AIController != nullptr)
+		return;
+
+	//Spawn AIControlled character
+	AVivalandTestPawn* VivalandPawn = Cast<AVivalandTestPawn>(InPawn);
+	if (VivalandPawn != nullptr && AICharacterClass != nullptr && AIControllerClass != nullptr)
+	{
+		FTransform SpawnTransform = VivalandPawn->GetActorTransform();
+		FActorSpawnParameters SpawnParameters;
+		SpawnParameters.Owner = this;
+		AICharacter = Cast<AVivalandTestCharacter>(GetWorld()->SpawnActor(AICharacterClass, &SpawnTransform, SpawnParameters));
+		AIController = Cast<AVivalandTestAIController>(GetWorld()->SpawnActor(AIControllerClass, &SpawnTransform, SpawnParameters));
+		if (AIController != nullptr && AICharacter != nullptr)
+		{
+			AIController->Possess(AICharacter);
+			VivalandPawn->InitializePawn(AICharacter);
+		}
 	}
 }
 
@@ -72,12 +105,6 @@ void AVivalandTestPlayerController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Completed, this, &AVivalandTestPlayerController::OnSetDestinationReleased);
 		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Canceled, this, &AVivalandTestPlayerController::OnSetDestinationReleased);
 
-		// Setup touch input events
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Started, this, &AVivalandTestPlayerController::OnInputStarted);
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Triggered, this, &AVivalandTestPlayerController::OnTouchTriggered);
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Completed, this, &AVivalandTestPlayerController::OnTouchReleased);
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Canceled, this, &AVivalandTestPlayerController::OnTouchReleased);
-
 		// Setup keybord input events
 		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Started, this, &AVivalandTestPlayerController::OnShootStarted);
 		EnhancedInputComponent->BindAction(ScoreboardAction, ETriggerEvent::Started, this, &AVivalandTestPlayerController::OnScoreboardStarted);
@@ -95,60 +122,22 @@ void AVivalandTestPlayerController::OnInputStarted()
 // Triggered every frame when the input is held down
 void AVivalandTestPlayerController::OnSetDestinationTriggered()
 {
-	// We flag that the input is being pressed
-	FollowTime += GetWorld()->GetDeltaSeconds();
-	
 	// We look for the location in the world where the player has pressed the input
 	FHitResult Hit;
-	bool bHitSuccessful = false;
-	if (bIsTouch)
-	{
-		bHitSuccessful = GetHitResultUnderFinger(ETouchIndex::Touch1, ECollisionChannel::ECC_Visibility, true, Hit);
-	}
-	else
-	{
-		bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
-	}
+	bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
 
 	// If we hit a surface, cache the location
 	if (bHitSuccessful)
 	{
 		CachedDestination = Hit.Location;
 	}
-	
-	// Move towards mouse pointer or touch
-	APawn* ControlledPawn = GetPawn();
-	if (ControlledPawn != nullptr)
-	{
-		FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
-		ControlledPawn->AddMovementInput(WorldDirection, 1.0, false);
-	}
 }
 
 void AVivalandTestPlayerController::OnSetDestinationReleased()
 {
-	// If it was a short press
-	if (FollowTime <= ShortPressThreshold)
-	{
-		// We move there and spawn some particles
-		UAIBlueprintHelperLibrary::SimpleMoveToLocation(this, CachedDestination);
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, FXCursor, CachedDestination, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true, ENCPoolMethod::None, true);
-	}
-
-	FollowTime = 0.f;
-}
-
-// Triggered every frame when the input is held down
-void AVivalandTestPlayerController::OnTouchTriggered()
-{
-	bIsTouch = true;
-	OnSetDestinationTriggered();
-}
-
-void AVivalandTestPlayerController::OnTouchReleased()
-{
-	bIsTouch = false;
-	OnSetDestinationReleased();
+	// We move there and spawn some particles
+	Server_MoveToLocation(CachedDestination);
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, FXCursor, CachedDestination, FRotator::ZeroRotator, FVector(1.f, 1.f, 1.f), true, true, ENCPoolMethod::None, true);
 }
 
 void AVivalandTestPlayerController::OnShootStarted()
@@ -186,5 +175,13 @@ void AVivalandTestPlayerController::Server_SpawnProjectile_Implementation(FVecto
 		SpawnParameters.Owner = GetPawn();
 		AActor* SpawnedProjectile = GetWorld()->SpawnActor(ProjectileClass, &SpawnTransform, SpawnParameters);
 		GetPawn()->MoveIgnoreActorAdd(SpawnedProjectile);
+	}
+}
+
+void AVivalandTestPlayerController::Server_MoveToLocation_Implementation(FVector NewDestination)
+{
+	if (AIController != nullptr)
+	{
+		AIController->MoveToLocation(NewDestination);
 	}
 }

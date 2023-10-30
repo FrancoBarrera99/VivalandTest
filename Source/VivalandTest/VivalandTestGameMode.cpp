@@ -4,6 +4,7 @@
 #include "VivalandTestPlayerController.h"
 #include "VivalandTestPlayerState.h"
 #include "VivalandTestCharacter.h"
+#include "VivalandTestPawn.h"
 #include "GameFramework/HUD.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -13,11 +14,7 @@ AVivalandTestGameMode::AVivalandTestGameMode()
 	PlayerControllerClass = AVivalandTestPlayerController::StaticClass();
 
 	// set default pawn class to our Blueprinted character
-	static ConstructorHelpers::FClassFinder<APawn> PlayerPawnBPClass(TEXT("/Game/TopDown/Blueprints/BP_TopDownCharacter"));
-	if (PlayerPawnBPClass.Class != nullptr)
-	{
-		DefaultPawnClass = PlayerPawnBPClass.Class;
-	}
+	DefaultPawnClass = AVivalandTestPawn::StaticClass();
 
 	// set default controller to our Blueprinted controller
 	static ConstructorHelpers::FClassFinder<APlayerController> PlayerControllerBPClass(TEXT("/Game/TopDown/Blueprints/BP_TopDownPlayerController"));
@@ -50,7 +47,5 @@ void AVivalandTestGameMode::RestartPlayer(AController* NewPlayer)
 		return;
 
 	FVector NewPosition = PlayerStart->GetActorLocation();
-	FRotator NewRotation = PlayerStart->GetActorRotation();
-
-	PlayerPawn->SetActorLocationAndRotation(NewPosition, NewRotation);
+	PlayerPawn->SetActorLocation(NewPosition);
 }
