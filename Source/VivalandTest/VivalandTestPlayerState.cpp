@@ -41,6 +41,7 @@ void AVivalandTestPlayerState::SetPlayerTeam(EPlayerTeam NewTeam)
 void AVivalandTestPlayerState::IncreasePlayerScore(int32 Value)
 {
 	PlayerScore += Value;
+	OnRep_PlayerScoreUpdated(PlayerScore);
 }
 
 void AVivalandTestPlayerState::Server_InitializePlayer_Implementation(const FText& NewUsername, EPlayerTeam NewPlayerTeam)
@@ -54,4 +55,9 @@ void AVivalandTestPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	DOREPLIFETIME(AVivalandTestPlayerState, PlayerTeam);
 	DOREPLIFETIME(AVivalandTestPlayerState, PlayerScore);
 	DOREPLIFETIME(AVivalandTestPlayerState, PlayerUsername);
+}
+
+void AVivalandTestPlayerState::OnRep_PlayerScoreUpdated(int32 OldScore)
+{
+	OnPlayerScoreUpdated.Broadcast(PlayerScore);
 }

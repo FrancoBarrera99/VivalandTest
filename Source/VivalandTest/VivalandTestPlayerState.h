@@ -6,6 +6,8 @@
 #include "GameFramework/PlayerState.h"
 #include "VivalandTestPlayerState.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerScoreUpdated, int32, NewScore);
+
 UENUM(BlueprintType)
 enum class EPlayerTeam : uint8
 {
@@ -39,12 +41,17 @@ public:
 	void Server_InitializePlayer(const FText& NewUsername, EPlayerTeam NewPlayerTeam);
 	void Server_InitializePlayer_Implementation(const FText& NewUsername, EPlayerTeam NewPlayerTeam);
 
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerScoreUpdated OnPlayerScoreUpdated;
+
 protected:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+	UFUNCTION()
+	void OnRep_PlayerScoreUpdated(int32 OldScore);
 
 	UPROPERTY(Replicated)
 	EPlayerTeam PlayerTeam;
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_PlayerScoreUpdated)
 	int32 PlayerScore;
 	UPROPERTY(Replicated)
 	FText PlayerUsername;
